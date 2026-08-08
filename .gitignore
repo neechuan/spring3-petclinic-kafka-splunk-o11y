@@ -5,3 +5,8 @@
 docs/*
 .env
 logs/*
+backend/target/*
+frontend/target/*
+# OS generated files
+.DS_Store
+Thumbs.db
