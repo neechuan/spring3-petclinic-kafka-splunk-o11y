@@ -9,19 +9,19 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JavaType;
 
-import org.springframework.samples.petclinic.messaging.KafkaRpcClient;
+import org.springframework.samples.petclinic.messaging.TibcoRpcClient;
 import org.springframework.samples.petclinic.messaging.RpcTopics;
 import org.springframework.stereotype.Repository;
 
 /**
- * Kafka-backed {@link PetTypeRepository}.
+ * TIBCO-backed {@link PetTypeRepository}.
  */
 @Repository
-public class KafkaPetTypeRepository implements PetTypeRepository {
+public class TibcoPetTypeRepository implements PetTypeRepository {
 
-	private final KafkaRpcClient client;
+	private final TibcoRpcClient client;
 
-	public KafkaPetTypeRepository(KafkaRpcClient client) {
+	public TibcoPetTypeRepository(TibcoRpcClient client) {
 		this.client = client;
 	}
 

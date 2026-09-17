@@ -6,8 +6,8 @@
 package org.springframework.samples.petclinic.messaging;
 
 /**
- * Kafka topic constants defining the request/reply RPC contract between the PetClinic
- * frontend and backend. Topics use dot notation (Kafka convention).
+ * TIBCO JMS queue constants defining the request/reply RPC contract between the PetClinic
+ * frontend and backend. Queues use dot notation (JMS/TIBCO convention).
  */
 public final class RpcTopics {
 

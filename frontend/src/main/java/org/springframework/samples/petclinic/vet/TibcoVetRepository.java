@@ -14,20 +14,20 @@ import com.fasterxml.jackson.databind.JavaType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.samples.petclinic.messaging.KafkaRpcClient;
+import org.springframework.samples.petclinic.messaging.TibcoRpcClient;
 import org.springframework.samples.petclinic.messaging.PageResponse;
 import org.springframework.samples.petclinic.messaging.RpcTopics;
 import org.springframework.stereotype.Repository;
 
 /**
- * Kafka-backed {@link VetRepository}.
+ * TIBCO-backed {@link VetRepository}.
  */
 @Repository
-public class KafkaVetRepository implements VetRepository {
+public class TibcoVetRepository implements VetRepository {
 
-	private final KafkaRpcClient client;
+	private final TibcoRpcClient client;
 
-	public KafkaVetRepository(KafkaRpcClient client) {
+	public TibcoVetRepository(TibcoRpcClient client) {
 		this.client = client;
 	}
 

@@ -1,48 +1,48 @@
 #!/usr/bin/env bash
 #
-# Stop the Kafka PetClinic stack - the reverse of run-all.sh. Stop everything
+# Stop the TIBCO PetClinic stack - the reverse of run-all.sh. Stop everything
 # or one service at a time:
 #   frontend   Stop the frontend (whatever is listening on 8080)
 #   backend    Stop the backend  (whatever is listening on 8081)
-#   kafka      Stop and remove the Kafka broker container
+#   tibco      Stop and remove the TIBCO EMS broker container
 #   apps       Stop frontend and backend (no broker)
-#   all        Stop frontend, backend and kafka (default)
+#   all        Stop frontend, backend and tibco (default)
 #
 # Services are stopped in the reverse of run-all.sh's start order:
-# frontend, then backend, then kafka.
+# frontend, then backend, then tibco.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-KAFKA_CONTAINER="${KAFKA_CONTAINER:-petclinic-kafka}"
+TIBCO_CONTAINER="${TIBCO_CONTAINER:-petclinic-tibco}"
 
 usage() {
   cat <<'EOF'
 Usage: ./stop-all.sh [target ...]
 
 Targets:
-  kafka      Stop and remove the Apache Kafka broker container
+  tibco      Stop and remove the TIBCO EMS broker container
   backend    Stop the backend  (listening on 8081)
   frontend   Stop the frontend (listening on 8080)
   apps       Stop frontend and backend (no broker)
-  all        Stop frontend, backend and kafka (default)
+  all        Stop frontend, backend and tibco (default)
 
 Examples:
   ./stop-all.sh                # stop everything
-  ./stop-all.sh kafka          # just the broker
+  ./stop-all.sh tibco          # just the broker
   ./stop-all.sh frontend       # just the frontend
   ./stop-all.sh apps           # frontend + backend
 EOF
 }
 
 # ---- parse targets ---------------------------------------------------------
-want_solace=0 want_backend=0 want_frontend=0
+want_tibco=0 want_backend=0 want_frontend=0
 targets=("$@")
 [ ${#targets[@]} -eq 0 ] && targets=(all)
 for t in "${targets[@]}"; do
   case "$t" in
-    all)      want_solace=1; want_backend=1; want_frontend=1 ;;
+    all)      want_tibco=1; want_backend=1; want_frontend=1 ;;
     apps)     want_backend=1; want_frontend=1 ;;
-    kafka)    want_solace=1 ;;
+    tibco)    want_tibco=1 ;;
     backend)  want_backend=1 ;;
     frontend) want_frontend=1 ;;
     -h|--help|help) usage; exit 0 ;;
@@ -70,17 +70,17 @@ stop_port() {
   echo "$name stopped."
 }
 
-stop_kafka() {
-  if podman container exists "$KAFKA_CONTAINER" 2>/dev/null; then
-    echo "Stopping Kafka broker '$KAFKA_CONTAINER'..."
-    podman rm -f "$KAFKA_CONTAINER" >/dev/null
-    echo "Kafka broker stopped."
+stop_tibco() {
+  if podman container exists "$TIBCO_CONTAINER" 2>/dev/null; then
+    echo "Stopping TIBCO EMS broker '$TIBCO_CONTAINER'..."
+    podman rm -f "$TIBCO_CONTAINER" >/dev/null
+    echo "TIBCO EMS broker stopped."
   else
-    echo "kafka: not running."
+    echo "tibco: not running."
   fi
 }
 
-# ---- act in reverse order: frontend, backend, solace -----------------------
+# ---- act in reverse order: frontend, backend, tibco -----------------------
 [ $want_frontend -eq 1 ] && stop_port frontend 8080
 [ $want_backend -eq 1 ]  && stop_port backend  8081
-[ $want_solace -eq 1 ]   && stop_kafka
+[ $want_tibco -eq 1 ]    && stop_tibco

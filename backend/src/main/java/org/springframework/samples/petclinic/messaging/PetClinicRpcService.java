@@ -28,9 +28,9 @@ import org.springframework.samples.petclinic.vet.VetRepository;
 import org.springframework.stereotype.Service;
 
 /**
- * Executes the persistence operations requested over Kafka and produces an
+ * Executes the persistence operations requested over TIBCO EMS/BW (JMS) and produces an
  * {@link RpcResponse}. This is the server-side counterpart of the frontend's
- * Kafka-backed repositories.
+ * TIBCO-backed repositories.
  */
 @Service
 public class PetClinicRpcService {

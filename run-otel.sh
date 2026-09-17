@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Start the Kafka PetClinic stack with the Splunk Distribution of OpenTelemetry
+# Start the TIBCO PetClinic stack with the Splunk Distribution of OpenTelemetry
 # Java agent attached.
 #
 # Unlike run-all.sh (which runs the apps via `mvn spring-boot:run`), this script
@@ -9,11 +9,11 @@
 # service separation in Splunk APM and a clean PID-based shutdown.
 #
 # Targets:
-#   kafka      Apache Kafka broker  (delegated to ./run-all.sh kafka)
-#   backend    persistence + Kafka replier   (http://localhost:8081)
-#   frontend   UI + Kafka requestor          (http://localhost:8080)
+#   tibco      TIBCO EMS broker     (delegated to ./run-all.sh tibco)
+#   backend    persistence + TIBCO replier   (http://localhost:8081)
+#   frontend   UI + TIBCO requestor          (http://localhost:8080)
 #   apps       backend + frontend (no broker)
-#   all        kafka + backend + frontend   (default)
+#   all        tibco + backend + frontend   (default)
 #
 # A single requested app runs in the foreground with live logs (Ctrl+C stops
 # it). Multiple apps run in the background (logs in ./logs) and are stopped
@@ -57,7 +57,7 @@ OTEL_EXPORTER_OTLP_PROTOCOL="${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}"
 OTEL_LOGS_EXPORTER="${OTEL_LOGS_EXPORTER:-none}"
 OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES:-deployment.environment=lab,service.version=1.0}"
 # Base service name; each app JVM reports as its own service (one per tier).
-OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-gary-petclinic-kafka}"
+OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-gary-petclinic-tibco}"
 OTEL_BACKEND_SERVICE="${OTEL_BACKEND_SERVICE:-${OTEL_SERVICE_NAME}-backend}"
 OTEL_FRONTEND_SERVICE="${OTEL_FRONTEND_SERVICE:-${OTEL_SERVICE_NAME}-frontend}"
 # Human-readable telemetry destination for log lines (token is never printed).
@@ -75,11 +75,11 @@ usage() {
 Usage: ./run-otel.sh [target ...]
 
 Targets:
-  kafka      Start the Apache Kafka broker (detached container)
+  tibco      Start the TIBCO EMS broker (detached container)
   backend    Start the backend  (persistence + replier, http://localhost:8081)
   frontend   Start the frontend (UI + requestor,        http://localhost:8080)
   apps       Start backend then frontend (no broker)
-  all        Start kafka, backend and frontend (default)
+  all        Start tibco, backend and frontend (default)
   build      Force a `mvn package` rebuild of the jars before starting
 
 Examples:
@@ -94,14 +94,14 @@ EOF
 }
 
 # ---- parse targets ---------------------------------------------------------
-want_kafka=0 want_backend=0 want_frontend=0 force_build=0
+want_tibco=0 want_backend=0 want_frontend=0 force_build=0
 targets=("$@")
 [ ${#targets[@]} -eq 0 ] && targets=(all)
 for t in "${targets[@]}"; do
   case "$t" in
-    all)      want_kafka=1; want_backend=1; want_frontend=1 ;;
+    all)      want_tibco=1; want_backend=1; want_frontend=1 ;;
     apps)     want_backend=1; want_frontend=1 ;;
-    kafka)    want_kafka=1 ;;
+    tibco)    want_tibco=1 ;;
     backend)  want_backend=1 ;;
     frontend) want_frontend=1 ;;
     build)    force_build=1 ;;
@@ -162,7 +162,7 @@ cleanup() {
     kill "$pid" 2>/dev/null || true
   done
   wait 2>/dev/null || true
-  echo "Done. The Kafka broker is still running (stop it with ./stop-all.sh kafka)."
+  echo "Done. The TIBCO EMS broker is still running (stop it with ./stop-all.sh tibco)."
 }
 
 wait_for_http() { # <name> <url>
@@ -241,8 +241,8 @@ run_app_fg() {
   exec "${JAVA_CMD[@]}"
 }
 
-# ---- act, in canonical order: kafka, backend, frontend --------------------
-[ $want_kafka -eq 1 ] && ./run-all.sh kafka
+# ---- act, in canonical order: tibco, backend, frontend --------------------
+[ $want_tibco -eq 1 ] && ./run-all.sh tibco
 
 if [ "$OTEL_ENABLED" = "true" ]; then
   echo "Splunk OpenTelemetry agent ENABLED: service='$OTEL_SERVICE_NAME' -> $OTEL_DEST"
@@ -253,8 +253,8 @@ fi
 java_count=$((want_backend + want_frontend))
 
 if [ "$java_count" -eq 0 ]; then
-  [ $want_kafka -eq 1 ] && \
-    echo "Kafka bootstrap   : localhost:29092"
+  [ $want_tibco -eq 1 ] && \
+    echo "TIBCO EMS broker  : localhost:61616"
   exit 0
 fi
 
@@ -278,7 +278,7 @@ echo
 echo "Services are up:"
 [ $want_frontend -eq 1 ] && echo "  PetClinic UI      : http://localhost:8080/"
 [ $want_backend -eq 1 ]  && echo "  Backend health    : http://localhost:8081/actuator/health"
-[ $want_kafka -eq 1 ]    && echo "  Kafka bootstrap   : localhost:29092"
+[ $want_tibco -eq 1 ]    && echo "  TIBCO EMS broker  : localhost:61616"
 [ "$OTEL_ENABLED" = "true" ] && \
   echo "  Splunk OTel       : services '$OTEL_BACKEND_SERVICE' + '$OTEL_FRONTEND_SERVICE' -> $OTEL_DEST"
 echo

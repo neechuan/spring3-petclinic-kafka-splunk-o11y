@@ -14,20 +14,20 @@ import com.fasterxml.jackson.databind.JavaType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.samples.petclinic.messaging.KafkaRpcClient;
+import org.springframework.samples.petclinic.messaging.TibcoRpcClient;
 import org.springframework.samples.petclinic.messaging.PageResponse;
 import org.springframework.samples.petclinic.messaging.RpcTopics;
 import org.springframework.stereotype.Repository;
 
 /**
- * Kafka-backed {@link OwnerRepository}.
+ * TIBCO-backed {@link OwnerRepository}.
  */
 @Repository
-public class KafkaOwnerRepository implements OwnerRepository {
+public class TibcoOwnerRepository implements OwnerRepository {
 
-	private final KafkaRpcClient client;
+	private final TibcoRpcClient client;
 
-	public KafkaOwnerRepository(KafkaRpcClient client) {
+	public TibcoOwnerRepository(TibcoRpcClient client) {
 		this.client = client;
 	}
 

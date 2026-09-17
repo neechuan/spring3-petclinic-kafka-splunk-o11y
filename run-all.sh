@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# Start the Kafka PetClinic stack, all together or one service at a time:
-#   kafka      Apache Kafka broker  (detached container, KRaft mode)
-#   backend    persistence + Kafka replier   (http://localhost:8081)
-#   frontend   UI + Kafka requestor          (http://localhost:8080)
-#   all        kafka + backend + frontend   (default)
+# Start the TIBCO PetClinic stack, all together or one service at a time:
+#   tibco      TIBCO EMS broker      (detached ActiveMQ container mimicking TIBCO)
+#   backend    persistence + TIBCO replier   (http://localhost:8081)
+#   frontend   UI + TIBCO requestor          (http://localhost:8080)
+#   all        tibco + backend + frontend   (default)
 #
 # A single requested app runs in the foreground with live logs (Ctrl+C stops
 # it). Multiple apps run in the background (logs in ./logs) and are stopped
 # together with Ctrl+C. The broker always runs detached - stop it with:
-#   ./stop-all.sh kafka
+#   ./stop-all.sh tibco
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -27,18 +27,18 @@ usage() {
 Usage: ./run-all.sh [target ...]
 
 Targets:
-  kafka      Start the Apache Kafka broker (detached container, KRaft mode)
+  tibco      Start the TIBCO EMS broker (detached ActiveMQ container, http://localhost:8161)
   backend    Start the backend  (persistence + replier, http://localhost:8081)
   frontend   Start the frontend (UI + requestor,        http://localhost:8080)
   apps       Start backend then frontend (no broker)
-  all        Start kafka, backend and frontend (default)
+  all        Start tibco, backend and frontend (default)
 
 Examples:
   ./run-all.sh                 # start everything
-  ./run-all.sh kafka           # just the broker
+  ./run-all.sh tibco           # just the broker
   ./run-all.sh backend         # just the backend (live logs; Ctrl+C to stop)
   ./run-all.sh apps            # backend then frontend
-  ./run-all.sh kafka backend   # broker + backend
+  ./run-all.sh tibco backend   # broker + backend
 EOF
 }
 
@@ -53,14 +53,14 @@ else
 fi
 
 # ---- parse targets ---------------------------------------------------------
-want_kafka=0 want_backend=0 want_frontend=0
+want_tibco=0 want_backend=0 want_frontend=0
 targets=("$@")
 [ ${#targets[@]} -eq 0 ] && targets=(all)
 for t in "${targets[@]}"; do
   case "$t" in
-    all)      want_kafka=1; want_backend=1; want_frontend=1 ;;
+    all)      want_tibco=1; want_backend=1; want_frontend=1 ;;
     apps)     want_backend=1; want_frontend=1 ;;
-    kafka)    want_kafka=1 ;;
+    tibco)    want_tibco=1 ;;
     backend)  want_backend=1 ;;
     frontend) want_frontend=1 ;;
     -h|--help|help) usage; exit 0 ;;
@@ -82,36 +82,22 @@ wait_for_http() { # <name> <url>
   echo " timed out (continuing anyway)."
 }
 
-run_kafka() {
-  local name="${KAFKA_CONTAINER:-petclinic-kafka}"
-  local image="${KAFKA_IMAGE:-docker.io/apache/kafka:3.9.0}"
+run_tibco() {
+  local name="${TIBCO_CONTAINER:-petclinic-tibco}"
+  local image="${TIBCO_IMAGE:-docker.io/apache/activemq-classic:latest}"
   if podman container exists "$name"; then
     podman start "$name"
   else
-    # Single-node KRaft mode (no Zookeeper).
-    # Use dual listeners so both contexts work:
-    # - PLAINTEXT (9092): container network clients (e.g., collector -> petclinic-kafka)
-    # - PLAINTEXT_HOST (29092): host JVM clients (frontend/backend -> localhost)
-    # apache/kafka uses KAFKA_* (no _CFG_ prefix) unlike the old bitnami image.
     podman run -d --name "$name" \
       --network petclinic-net \
-      -p 9092:9092 \
-      -p 29092:29092 \
-      -e KAFKA_NODE_ID=0 \
-      -e KAFKA_PROCESS_ROLES=controller,broker \
-      -e KAFKA_LISTENERS=PLAINTEXT://:9092,PLAINTEXT_HOST://:29092,CONTROLLER://:9093 \
-      -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://petclinic-kafka:9092,PLAINTEXT_HOST://localhost:29092 \
-      -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT \
-      -e KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT \
-      -e KAFKA_CONTROLLER_QUORUM_VOTERS=0@localhost:9093 \
-      -e KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER \
-      -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+      -p 61616:61616 \
+      -p 8161:8161 \
       "$image"
   fi
-  echo "Kafka broker '$name' starting (host bootstrap localhost:29092, container bootstrap petclinic-kafka:9092)."
-  printf 'Waiting for Kafka (29092) '
+  echo "TIBCO EMS broker '$name' starting (host port 61616, web console http://localhost:8161)."
+  printf 'Waiting for TIBCO EMS (61616) '
   for i in $(seq 1 60); do
-    if nc -z localhost 29092 2>/dev/null; then echo " open."; break; fi
+    if nc -z localhost 61616 2>/dev/null; then echo " open."; break; fi
     printf '.'; sleep 2
   done
 }
@@ -136,14 +122,14 @@ run_app_fg() {
   exec $MVN -f "$dir/pom.xml" -Dspring-boot.run.fork=false spring-boot:run
 }
 
-# ---- act, in canonical order: kafka, backend, frontend --------------------
-[ $want_kafka -eq 1 ] && run_kafka
+# ---- act, in canonical order: tibco, backend, frontend --------------------
+[ $want_tibco -eq 1 ] && run_tibco
 
 java_count=$((want_backend + want_frontend))
 
 if [ "$java_count" -eq 0 ]; then
-  [ $want_kafka -eq 1 ] && \
-    echo "Kafka bootstrap   : localhost:29092"
+  [ $want_tibco -eq 1 ] && \
+    echo "TIBCO EMS broker  : localhost:61616"
   exit 0
 fi
 
@@ -169,7 +155,7 @@ echo
 echo "Services are up:"
 [ $want_frontend -eq 1 ] && echo "  PetClinic UI      : http://localhost:8080/"
 [ $want_backend -eq 1 ]  && echo "  Backend health    : http://localhost:8081/actuator/health"
-[ $want_kafka -eq 1 ]    && echo "  Kafka bootstrap   : localhost:29092"
+[ $want_tibco -eq 1 ]    && echo "  TIBCO EMS broker  : localhost:61616"
 echo
 echo "Logs in $LOG_DIR/. Press Ctrl+C to stop the app(s)."
 wait

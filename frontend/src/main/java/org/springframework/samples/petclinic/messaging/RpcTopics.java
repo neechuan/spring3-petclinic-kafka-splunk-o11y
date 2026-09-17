@@ -6,8 +6,8 @@
 package org.springframework.samples.petclinic.messaging;
 
 /**
- * Kafka topic constants defining the request/reply RPC contract between the PetClinic
- * frontend and backend. Topics use dot notation (Kafka convention).
+ * TIBCO JMS queue constants defining the request/reply RPC contract between the PetClinic
+ * frontend and backend. Queues use dot notation (JMS/TIBCO convention).
  */
 public final class RpcTopics {
 
@@ -26,7 +26,7 @@ public final class RpcTopics {
 
 	public static final String VET_FIND_ALL_PAGED = "vet.findAllPaged";
 
-	/** Reply topic for ReplyingKafkaTemplate correlation. */
+	/** Reply queue (not used since we use temporary queues). */
 	public static final String REPLIES_TOPIC = "petclinic.rpc.replies";
 
 	private RpcTopics() {

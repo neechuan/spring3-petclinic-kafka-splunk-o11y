@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spring PetClinic (Kafka + OTel) — Launcher</title>
+  <title>Spring PetClinic (TIBCO + OTel) — Launcher</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -81,11 +81,11 @@
   </style>
 </head>
 <body>
-  <h1>Spring PetClinic — Kafka + OTel Edition</h1>
+  <h1>Spring PetClinic — TIBCO + OTel Edition</h1>
   <p class="sub">Local launcher for the current distributed stack</p>
 
   <div class="summary">
-    Frontend requests now flow through the backend over Kafka, and observability is handled by a local Splunk OpenTelemetry Collector with Kafka metrics enabled.
+    Frontend requests now flow through the backend over TIBCO ActiveMatrix BusinessWorks / EMS (JMS), and observability is handled by a local Splunk OpenTelemetry Collector with ActiveMQ/JMS metrics enabled.
   </div>
 
   <div class="grid">
@@ -98,28 +98,28 @@
     <a class="card" href="http://localhost:8081/actuator/health" target="_blank" rel="noopener">
       <h2>Backend Health</h2>
       <span class="url">http://localhost:8081/actuator/health</span>
-      <p class="desc">Spring Boot Actuator health for the persistence and Kafka replier service.</p>
+      <p class="desc">Spring Boot Actuator health for the persistence and TIBCO JMS replier service.</p>
     </a>
 
     <a class="card" href="http://localhost:13133/" target="_blank" rel="noopener">
       <h2>OTel Collector Health</h2>
       <span class="url">http://localhost:13133/</span>
-      <p class="desc">Health endpoint for the local Splunk OpenTelemetry Collector that receives app telemetry and Kafka metrics.</p>
+      <p class="desc">Health endpoint for the local Splunk OpenTelemetry Collector that receives app telemetry and ActiveMQ metrics.</p>
       <p class="meta">OTLP endpoints: <code>localhost:4317</code> and <code>localhost:4318</code></p>
     </a>
 
     <div class="card">
-      <h2>Kafka Broker</h2>
-      <span class="url">localhost:9092</span>
-      <p class="desc">Single-node Kafka broker used by the frontend/backend request-reply flow and the Collector's Kafka metrics receiver.</p>
-      <p class="meta">Container: <code>petclinic-kafka</code><br />Metrics config: <a href="KAFKA_METRICS_SETUP.md">KAFKA_METRICS_SETUP.md</a></p>
+      <h2>TIBCO EMS Broker</h2>
+      <span class="url">localhost:61616</span>
+      <p class="desc">JMS broker (ActiveMQ mimicking TIBCO EMS) used by the frontend/backend request-reply flow and the Collector's metrics receiver.</p>
+      <p class="meta">Container: <code>petclinic-tibco</code><br />Metrics config: <a href="TIBCO_METRICS_SETUP.md">TIBCO_METRICS_SETUP.md</a></p>
     </div>
   </div>
 
   <div class="commands">
     <h2>Quick Start</h2>
-    <p><code>./run-all.sh</code> starts Kafka, backend, and frontend.</p>
-    <p><code>./run-collector.sh up</code> starts the Splunk OTel Collector with <code>otel-kafka-metrics.yaml</code>.</p>
+    <p><code>./run-all.sh</code> starts TIBCO, backend, and frontend.</p>
+    <p><code>./run-collector.sh up</code> starts the Splunk OTel Collector with <code>otel-tibco-metrics.yaml</code>.</p>
     <p><code>./run-otel.sh</code> launches the apps with the Splunk OTel Java agent attached.</p>
   </div>
 
